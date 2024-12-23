@@ -1,11 +1,8 @@
 import discord
 import requests
 import asyncio
-from flask import Flask
 import os
-
-# Crée une instance de l'application Flask
-app = Flask(__name__)
+from keep_alive import keep_alive  # Importation du keep_alive
 
 # Récupérer le token du bot à partir de la variable d'environnement
 TOKEN = os.getenv("DISCORD_TOKEN")
@@ -38,8 +35,7 @@ bot = MyBot()
 @bot.tree.command(name="status", description="Vérifie le statut d'un site web")
 async def status(interaction: discord.Interaction, url: str):
     """Commande slash pour vérifier le statut de n'importe quel site web."""
-    # Supprime le message de l'utilisateur
-    await interaction.response.defer(thinking=True)
+    await interaction.response.defer(thinking=True)  # Supprime le message de l'utilisateur
 
     try:
         # Envoi une requête GET au site fourni
@@ -61,28 +57,14 @@ async def status(interaction: discord.Interaction, url: str):
             f"**❌ Impossible d'accéder au site {url}. Erreur : {e}** 🌐", 
             ephemeral=False
         )
-    
+
     # Supprime la réponse du bot après 30 secondes
     await asyncio.sleep(30)
     await reply.delete()
 
-@app.route('/')
-def home():
-    return "Bot Discord en cours d'exécution ! 🌐"
-
-# Démarrer l'application Flask dans un thread séparé pour ne pas bloquer le bot
-from threading import Thread
-
-def run_flask():
-    app.run(host='0.0.0.0', port=5000)
-
-def run_discord():
-    bot.run(TOKEN)
-
 if __name__ == "__main__":
-    # Démarrer Flask dans un thread séparé
-    thread = Thread(target=run_flask)
-    thread.start()
+    # Active le keep-alive via Flask
+    keep_alive()
 
-    # Démarrer le bot Discord
-    run_discord()
+    # Démarre le bot Discord
+    bot.run(TOKEN)
