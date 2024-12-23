@@ -1,14 +1,15 @@
 import discord
 import requests
 import asyncio
-from dotenv import load_dotenv
 import os
 
-# Charger les variables d'environnement depuis le fichier .env
-load_dotenv()
-
-# Récupérer le token du bot à partir de la variable d'environnement
+# Récupérer le token du bot à partir des variables d'environnement
 TOKEN = os.getenv("DISCORD_TOKEN")
+
+# Vérifier si le token est présent
+if not TOKEN:
+    print("Erreur : Le token du bot est introuvable.")
+    exit(1)  # Quitte le programme si le token est manquant
 
 # Intention du bot
 intents = discord.Intents.default()
