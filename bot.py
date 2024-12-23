@@ -1,15 +1,18 @@
 import discord
 import requests
 import asyncio
-from dotenv import load_dotenv
-import os
 from flask import Flask
+import os
 
-# Charger les variables d'environnement depuis le fichier .env
-load_dotenv()
+# Crée une instance de l'application Flask
+app = Flask(__name__)
 
 # Récupérer le token du bot à partir de la variable d'environnement
 TOKEN = os.getenv("DISCORD_TOKEN")
+
+# Si le token est manquant, affiche une erreur
+if not TOKEN:
+    raise ValueError("Le token Discord n'est pas défini dans les variables d'environnement")
 
 # Intention du bot
 intents = discord.Intents.default()
@@ -63,28 +66,23 @@ async def status(interaction: discord.Interaction, url: str):
     await asyncio.sleep(30)
     await reply.delete()
 
-# Créer un serveur Flask pour être surveillé par UptimeRobot
-app = Flask(__name__)
-
 @app.route('/')
-def index():
-    return "Bot Discord en ligne"
+def home():
+    return "Bot Discord en cours d'exécution ! 🌐"
 
-# Lancer le bot et le serveur Flask simultanément
-if __name__ == '__main__':
-    from threading import Thread
+# Démarrer l'application Flask dans un thread séparé pour ne pas bloquer le bot
+from threading import Thread
 
-    # Fonction pour démarrer le bot
-    def run_bot():
-        bot.run(TOKEN)
+def run_flask():
+    app.run(host='0.0.0.0', port=5000)
 
-    # Fonction pour démarrer le serveur Flask
-    def run_flask():
-        app.run(host="0.0.0.0", port=5000)  # Pour Render, l'IP doit être 0.0.0.0
+def run_discord():
+    bot.run(TOKEN)
 
-    # Démarrer le bot et le serveur Flask sur des threads différents
-    thread_bot = Thread(target=run_bot)
-    thread_flask = Thread(target=run_flask)
+if __name__ == "__main__":
+    # Démarrer Flask dans un thread séparé
+    thread = Thread(target=run_flask)
+    thread.start()
 
-    thread_bot.start()
-    thread_flask.start()
+    # Démarrer le bot Discord
+    run_discord()
